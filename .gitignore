@@ -1,0 +1,68 @@
+# Dependências do Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Arquivos gerados pelo gRPC
+**/*_pb.js
+**/*_grpc_pb.js
+
+# Ambiente de desenvolvimento
+.env
+.env.local
+.env.development
+.env.test
+
+# Logs e diagnósticos
+logs/
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# IDE e editores
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-workspace
+*.code-workspace
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Arquivos de build e execução
+dist/
+build/
+out/
+coverage/
+.nyc_output/
+
+# Configurações específicas do projeto
+*.proto~
+protos/compiled/
+
+# Arquivos temporários
+temp/
+tmp/
+
+# Configurações do debug
+.vscode/launch.json
+
+# Arquivos de usuário
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Testes
+/junit.xml
+/test-results.xml
+/coverage/
+
+# Package lock alternativos
+package-lock.json
+shrinkwrap.yaml

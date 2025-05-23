@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  #vehicle {
+    position: absolute;
+    width: 40px;
+    height: 20px;
+    background: #19f35a;
+    border-radius: 5px;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    
+    /* Detalhes do carro */
+    border: 2px solid #2980b9;
+  }
+  
+  #vehicle::before, #vehicle::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 8px;
+    background: #2c503c;
+    border-radius: 3px;
+    bottom: -4px;
+  }
+  
+  #vehicle::before {
+    left: 3px;
+  }
+  
+  #vehicle::after {
+    right: 3px;
+  }
+  
+  #vehicle::after {
+    right: 3px;
+  }
+  
+  /* Farol */
+  #vehicle::before {
+    box-shadow: -2px -2px 0 #f1c40f;
+  }
+  
+  /* Janelas */
+  #vehicle .window {
+    position: absolute;
+    width: 8px;
+    height: 6px;
+    background: rgba(255,255,255,0.7);
+    top: 2px;
+    border-radius: 2px;
+  }
+  
+  #vehicle .front {
+    left: 4px;
+  }
+  
+  #vehicle .back {
+    right: 4px;
+  }
+</style>
+</head>
+<body>
+<div id="vehicle">
+  <div class="window front"></div>
+  <div class="window back"></div>
+</div>
+  <div id="commands"></div>
+
+<script>
+  const vehicle = document.getElementById('vehicle');
+  const ws = new WebSocket('ws://localhost:8080');
+  let lastX = null;
+  let lastY = null;
+  let lastTime = null;
+  const speedHistory = [];
+  
+  // Configuração de conversão (1 pixel = 0.1 metro)
+  const PIXELS_PER_METER = 10;
+  const METERS_PER_KM = 1000;
+  const MS_PER_HOUR = 3600000;
+
+  ws.onmessage = (event) => {
+    const command = JSON.parse(event.data);
+    document.getElementById('commands').innerHTML = `
+      <p>${new Date().toLocaleTimeString()}: ${command.command} - ${command.message}</p>
+    `;
+  };
+
+  document.addEventListener('mousemove', (e) => {
+    const currentX = e.clientX;
+    const currentY = e.clientY;
+    const now = Date.now();
+    
+    let speed = 0;
+    
+    if (lastX && lastY && lastTime) {
+      const timeDelta = now - lastTime;
+      if (timeDelta > 0) {
+        // Cálculo da distância em metros
+        const distance = Math.sqrt(
+          Math.pow(currentX - lastX, 2) + 
+          Math.pow(currentY - lastY, 2)
+        ) / PIXELS_PER_METER;
+        
+        // Cálculo da velocidade em km/h
+        speed = (distance / (timeDelta / MS_PER_HOUR)) / METERS_PER_KM;
+        
+        // Suavização com média móvel de 5 amostras
+        speedHistory.push(speed);
+        if (speedHistory.length > 5) speedHistory.shift();
+        speed = speedHistory.reduce((a,b) => a + b, 0) / speedHistory.length;
+      }
+    }
+
+    vehicle.style.left = `${currentX - 20}px`;
+    vehicle.style.top = `${currentY - 10}px`;
+    
+    fetch('/position', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        x: currentX,
+        y: currentY,
+        speed: Math.round(speed)
+      })
+    });
+
+    lastX = currentX;
+    lastY = currentY;
+    lastTime = now;
+  });
+</script>
+</body>
+</html>
